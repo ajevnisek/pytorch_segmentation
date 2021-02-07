@@ -26,7 +26,6 @@ class VOCDataset(BaseDataSet):
         self.root = os.path.join(self.root, 'VOCdevkit/VOC2012')
         self.image_dir = os.path.join(self.root, 'JPEGImages')
         self.label_dir = os.path.join(self.root, 'SegmentationClass')
-
         file_list = os.path.join(self.root, "ImageSets/Segmentation", self.split + ".txt")
         self.files = [line.rstrip() for line in tuple(open(file_list, "r"))]
     
@@ -36,6 +35,7 @@ class VOCDataset(BaseDataSet):
         label_path = os.path.join(self.label_dir, image_id + '.png')
         image = np.asarray(Image.open(image_path), dtype=np.float32)
         label = np.asarray(Image.open(label_path), dtype=np.int32)
+        import ipdb; ipdb.set_trace()
         image_id = self.files[index].split("/")[-1].split(".")[0]
         return image, label, image_id
 
@@ -56,14 +56,37 @@ class VOCAugDataset(BaseDataSet):
         file_list = os.path.join(self.root, "ImageSets/Segmentation", self.split + ".txt")
         file_list = [line.rstrip().split(' ') for line in tuple(open(file_list, "r"))]
         self.files, self.labels = list(zip(*file_list))
-    
-    def _load_data(self, index):
+
+    def _load_data_masked_targets(self, index):
         image_path = os.path.join(self.root, self.files[index][1:])
         label_path = os.path.join(self.root, self.labels[index][1:])
         image = np.asarray(Image.open(image_path), dtype=np.float32)
         label = np.asarray(Image.open(label_path), dtype=np.int32)
+        p = probability_of_chosen_pixels = 0.1 / 100
+        mask = np.random.choice([0, 1], size=label.shape, p=[1 - p, p])
+        label[np.where(mask == 0)] = 255
         image_id = self.files[index].split("/")[-1].split(".")[0]
         return image, label, image_id
+
+    def _load_data(self, index, split='val'):
+        if split == "val":
+            image_path = os.path.join(self.root, self.files[index][1:])
+            label_path = os.path.join(self.root, self.labels[index][1:])
+            image = np.asarray(Image.open(image_path), dtype=np.float32)
+            label = np.asarray(Image.open(label_path), dtype=np.int32)
+            image_id = self.files[index].split("/")[-1].split(".")[0]
+        else:
+            return self._load_data_masked_targets(index)
+        return image, label, image_id
+
+#    def _load_data(self, index):
+#        image_path = os.path.join(self.root, self.files[index][1:])
+#        label_path = os.path.join(self.root, self.labels[index][1:])
+#        image = np.asarray(Image.open(image_path), dtype=np.float32)
+#        label = np.asarray(Image.open(label_path), dtype=np.int32)
+#        import ipdb;ipdb.set_trace()
+#        image_id = self.files[index].split("/")[-1].split(".")[0]
+#        return image, label, image_id
 
 
 class VOC(BaseDataLoader):
