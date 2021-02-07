@@ -35,7 +35,6 @@ class VOCDataset(BaseDataSet):
         label_path = os.path.join(self.label_dir, image_id + '.png')
         image = np.asarray(Image.open(image_path), dtype=np.float32)
         label = np.asarray(Image.open(label_path), dtype=np.int32)
-        import ipdb; ipdb.set_trace()
         image_id = self.files[index].split("/")[-1].split(".")[0]
         return image, label, image_id
 
@@ -84,7 +83,6 @@ class VOCAugDataset(BaseDataSet):
 #        label_path = os.path.join(self.root, self.labels[index][1:])
 #        image = np.asarray(Image.open(image_path), dtype=np.float32)
 #        label = np.asarray(Image.open(label_path), dtype=np.int32)
-#        import ipdb;ipdb.set_trace()
 #        image_id = self.files[index].split("/")[-1].split(".")[0]
 #        return image, label, image_id
 
