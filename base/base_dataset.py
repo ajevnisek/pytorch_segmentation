@@ -9,7 +9,8 @@ from scipy import ndimage
 
 class BaseDataSet(Dataset):
     def __init__(self, root, split, mean, std, base_size=None, augment=True, val=False,
-                crop_size=321, scale=True, flip=True, rotate=False, blur=False, return_id=False):
+                crop_size=321, scale=True, flip=True, rotate=False,
+                 blur=False, return_id=False, M=None, p=None):
         self.root = root
         self.split = split
         self.mean = mean
@@ -28,13 +29,16 @@ class BaseDataSet(Dataset):
         self.to_tensor = transforms.ToTensor()
         self.normalize = transforms.Normalize(mean, std)
         self.return_id = return_id
+        self.M = M
+        self.p = p
+        # print("p:{}, M={}".format(self.p, self.M))
 
         cv2.setNumThreads(0)
 
     def _set_files(self):
         raise NotImplementedError
     
-    def _load_data(self, index):
+    def _load_data(self, index, split):
         raise NotImplementedError
 
     def _val_augmentation(self, image, label):
@@ -123,7 +127,7 @@ class BaseDataSet(Dataset):
         return len(self.files)
 
     def __getitem__(self, index):
-        image, label, image_id = self._load_data(index)
+        image, label, image_id = self._load_data(index, self.split)
         if self.val:
             image, label = self._val_augmentation(image, label)
         elif self.augment:
